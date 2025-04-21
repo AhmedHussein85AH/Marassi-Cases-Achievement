@@ -6,14 +6,14 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'), // Ensure correct alias resolution
+      '@': '/src',
     },
   },
   base: '/Marassi-Cases-Achievement/', // Ensure this matches your GitHub Pages repository name
   build: {
     outDir: 'dist', // Ensure the output directory is set to "dist"
     rollupOptions: {
-      // No need to externalize "sonner" unless explicitly required
+      external: ['@radix-ui/react-tooltip'], // Add @radix-ui/react-tooltip here
     },
   },
 });
