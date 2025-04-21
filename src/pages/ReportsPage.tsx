@@ -1,10 +1,11 @@
+import { useState } from "react";
 import AppShell from "@/components/layouts/AppShell";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardFooter, CardTitle } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RPieChart, Pie, Cell } from "recharts";
 import { Button } from "@/components/ui/button";
-import { BarChart3, Download, FileText, PieChart } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RPieChart, Pie, Cell, LineChart, Line } from "recharts";
-import { useEffect, useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Download, BarChart3, FileText, PieChart } from "lucide-react";
+import { useEffect } from "react";
 import { downloadCSV, exportCasesCSV, getAllCases } from "@/services/dataService";
 import { Case } from "@/types/case";
 import { useToast } from "@/hooks/use-toast";
@@ -142,7 +143,7 @@ const ReportsPage = () => {
                           fill="#8884d8"
                           dataKey="value"
                         >
-                          {caseTypeData.map((entry, index) => (
+                          {caseTypeData.map((_, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>
@@ -213,7 +214,7 @@ const ReportsPage = () => {
                           fill="#8884d8"
                           dataKey="value"
                         >
-                          {statusData.map((entry, index) => (
+                          {statusData.map((_, index) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                           ))}
                         </Pie>

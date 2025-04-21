@@ -1,4 +1,4 @@
-import { Case, CasePriority, CaseStatus, CaseType } from "@/types/case";
+import { Case, CaseStatus } from "@/types/case";
 import { getRecentCases } from "@/data/mockCases";
 
 // Local storage keys

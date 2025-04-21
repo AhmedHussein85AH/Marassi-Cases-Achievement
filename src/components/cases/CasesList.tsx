@@ -17,7 +17,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Case, CasePriority, CaseStatus, CaseType } from "@/types/case";
+import { Case, CasePriority, CaseStatus } from "@/types/case";
 import { caseTypes, getRecentCases, priorities, statuses } from "@/data/mockCases";
 import { Calendar, Filter, PlusCircle, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";

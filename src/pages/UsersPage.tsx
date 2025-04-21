@@ -1,6 +1,6 @@
 import { useState } from "react";
 import AppShell from "@/components/layouts/AppShell";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,6 +18,7 @@ import {
 import { AddUserDialog } from "@/components/users/AddUserDialog";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/use-toast";
 
 type User = {
   id: number;
@@ -30,9 +31,10 @@ type User = {
 };
 
 const UsersPage = () => {
+  const { toast } = useToast();
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [users, setUsers] = useState([
+  const [users, setUsers] = useState<User[]>([
     {
       id: 1,
       name: "Jane Smith",
@@ -85,12 +87,18 @@ const UsersPage = () => {
   const [filterDepartment, setFilterDepartment] = useState<string>("");
   const [filterStatus, setFilterStatus] = useState<string>("");
 
-  const handleAddUser = (newUser: Omit<User, "id" | "initials">) => {
-    const id = users.length + 1;
-    const initials = newUser.name.split(" ").map(n => n[0]).join("");
-    const userToAdd = { ...newUser, id, initials, status: "Active" };
-    setUsers(prev => [...prev, userToAdd]);
-    setFilteredUsers(prev => [...prev, userToAdd]);
+  const handleAddUser = (newUser: { role: string; name: string; email: string; password: string; department: string; }) => {
+    const user: User = {
+      ...newUser,
+      id: users.length + 1,
+      status: 'active',
+      initials: newUser.name.split(' ').map(n => n[0]).join('').toUpperCase(),
+    };
+    setUsers(prev => [...prev, user]);
+    toast({
+      title: "User Added",
+      description: `${user.name} has been added successfully.`,
+    });
   };
 
   const handleEditUser = (user: User) => {
@@ -99,10 +107,14 @@ const UsersPage = () => {
   };
 
   const handleUpdateUser = (updatedUser: User) => {
-    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-    applyFilters(searchQuery, filterRole, filterDepartment, filterStatus, 
-      prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u)
-    );
+    setUsers((prev: User[]) => {
+      return prev.map(u => u.id === updatedUser.id ? updatedUser : u);
+    });
+    applyFilters(searchQuery, filterRole, filterDepartment, filterStatus);
+    toast({
+      title: "User Updated",
+      description: `${updatedUser.name}'s information has been updated successfully.`,
+    });
   };
 
   const applyFilters = (search: string, role: string, department: string, status: string, usersToFilter = users) => {

@@ -18,7 +18,6 @@ const MessagesPage = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
-  const [showingArchived, setShowingArchived] = useState(false);
   const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
   const [newRecipient, setNewRecipient] = useState("");
 
@@ -153,10 +152,7 @@ const MessagesPage = () => {
               <Input placeholder="Search messages..." className="mt-2" />
             </CardHeader>
             <CardContent className="p-0">
-              <Tabs 
-                defaultValue="inbox" 
-                onValueChange={(value) => setShowingArchived(value === "archived")}
-              >
+              <Tabs defaultValue="inbox">
                 <TabsList className="grid grid-cols-2 w-full rounded-none border-b border-t">
                   <TabsTrigger value="inbox" className="flex items-center gap-2">
                     <Inbox className="h-4 w-4" />

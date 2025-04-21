@@ -1,12 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Case, CasePriority, CaseStatus } from "@/types/case";
+import { CasePriority, CaseStatus } from "@/types/case";
 import { getCaseById } from "@/services/dataService";
 import { ArrowLeft, Calendar, Clock, Edit, MessageSquare, MapPin, User, Users, FileText, Tag, Car, Package, CheckCircle2, AlertCircle } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -20,6 +17,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger
+} from "@/components/ui/tabs";
+import {
+  Avatar,
+  AvatarFallback
+} from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 
 const CaseDetail = () => {
   const { id } = useParams<{ id: string }>();
