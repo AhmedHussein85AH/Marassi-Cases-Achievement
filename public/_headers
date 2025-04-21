@@ -10,21 +10,27 @@
 
 /*.js
   Content-Type: text/javascript
+  X-Content-Type-Options: nosniff
 
 /*.mjs
   Content-Type: text/javascript
+  X-Content-Type-Options: nosniff
 
 /*.ts
-  Content-Type: text/typescript
+  Content-Type: application/typescript
+  X-Content-Type-Options: nosniff
 
 /*.jsx
   Content-Type: text/javascript
+  X-Content-Type-Options: nosniff
 
 /*.tsx
-  Content-Type: text/typescript
+  Content-Type: application/typescript
+  X-Content-Type-Options: nosniff
 
 /*.css
   Content-Type: text/css
+  X-Content-Type-Options: nosniff
 
 /*.html
   Content-Type: text/html; charset=utf-8

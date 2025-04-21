@@ -12,13 +12,20 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    target: 'esnext',
     rollupOptions: {
       output: {
         manualChunks: undefined,
+        format: 'es',
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
       },
     },
   },
   server: {
-    historyApiFallback: true,
+    headers: {
+      'Content-Type': 'text/javascript'
+    },
   },
 });
