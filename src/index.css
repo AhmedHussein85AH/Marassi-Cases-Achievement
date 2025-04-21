@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -87,17 +86,18 @@
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gray-50; /* Correct Tailwind class */
+    @apply text-gray-800;
   }
 }
 
 @layer components {
   .case-priority-low {
-    @apply text-case-low bg-case-low/10 border border-case-low/30 px-2 py-0.5 rounded-full text-xs font-medium;
+    @apply lowercase bg-case-low/10 border border-case-low/30 px-2 py-0.5 rounded-full text-xs font-medium;
   }
   
   .case-priority-medium {

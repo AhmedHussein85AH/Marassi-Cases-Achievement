@@ -1,6 +1,5 @@
-
 import LoginForm from "@/components/auth/LoginForm";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert, IconName } from "lucide-react";
 
 const Login = () => {
   return (
