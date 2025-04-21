@@ -3,7 +3,18 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'configure-response-headers',
+      configureServer(server) {
+        server.middlewares.use((_req, res, next) => {
+          res.setHeader('Content-Type', 'application/javascript');
+          next();
+        });
+      }
+    }
+  ],
   base: '/Marassi-Cases-Achievement/',
   resolve: {
     alias: {
@@ -12,20 +23,13 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    target: 'esnext',
+    assetsDir: 'assets',
+    modulePreload: true,
+    sourcemap: true,
     rollupOptions: {
       output: {
-        manualChunks: undefined,
-        format: 'es',
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        assetFileNames: 'assets/[name]-[hash].[ext]'
+        manualChunks: undefined
       },
-    },
-  },
-  server: {
-    headers: {
-      'Content-Type': 'text/javascript'
     },
   },
 });
