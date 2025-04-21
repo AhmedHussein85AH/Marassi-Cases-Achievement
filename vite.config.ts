@@ -4,7 +4,7 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  base: 'https://ahmedhussein85ah.github.io/Marassi-Cases-Achievement/',
+  base: './',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
@@ -12,7 +12,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    assetsDir: '',
+    assetsDir: 'assets',
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html')
