@@ -12,9 +12,12 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
+    assetsDir: '',
     rollupOptions: {
-      input: path.resolve(__dirname, 'index.html')
-    }
+      input: {
+        main: path.resolve(__dirname, 'index.html')
+      }
+    },
+    manifest: true
   }
 })
