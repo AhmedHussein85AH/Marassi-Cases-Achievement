@@ -14,10 +14,12 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: '',
     rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html')
+      input: path.resolve(__dirname, 'index.html'),
+      output: {
+        entryFileNames: '[name].js',
+        chunkFileNames: '[name].js',
+        assetFileNames: '[name].[ext]'
       }
-    },
-    manifest: true
+    }
   }
 })
