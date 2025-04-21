@@ -1,10 +1,10 @@
-
 import { Case, CasePriority, CaseStatus, CaseType } from "@/types/case";
 import { getRecentCases } from "@/data/mockCases";
 
 // Local storage keys
 const CASES_STORAGE_KEY = "case-guardian-cases";
 const NOTIFICATIONS_STORAGE_KEY = "case-guardian-notifications";
+const MESSAGES_STORAGE_KEY = "case-guardian-messages";
 
 // Initialize data if not present
 const initializeDataIfNeeded = () => {
@@ -43,8 +43,36 @@ const initializeDataIfNeeded = () => {
   }
 };
 
+// Initialize messages in localStorage if needed
+const initializeMessagesIfNeeded = () => {
+  if (!localStorage.getItem(MESSAGES_STORAGE_KEY)) {
+    const initialConversations: Conversation[] = [
+      {
+        id: 1,
+        user: "Jane Smith",
+        userInitials: "JS",
+        lastMessage: "Can you update me on case #45671?",
+        time: "10:23 AM",
+        unread: true,
+        messages: [
+          {
+            id: 1,
+            conversationId: 1,
+            senderId: "JS",
+            content: "Can you update me on case #45671?",
+            timestamp: "10:23 AM",
+            read: false,
+          }
+        ]
+      }
+    ];
+    localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(initialConversations));
+  }
+};
+
 // Initialize on service load
 initializeDataIfNeeded();
+initializeMessagesIfNeeded();
 
 // Case functions
 export const getAllCases = (): Case[] => {
@@ -207,4 +235,90 @@ export const downloadCSV = (filename: string, csvContent: string): void => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// Message types and storage
+export type Message = {
+  id: number;
+  conversationId: number;
+  senderId: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+};
+
+export type Conversation = {
+  id: number;
+  user: string;
+  userInitials: string;
+  lastMessage: string;
+  time: string;
+  unread: boolean;
+  messages: Message[];
+};
+
+// Message functions
+export const getAllConversations = (): Conversation[] => {
+  const conversationsData = localStorage.getItem(MESSAGES_STORAGE_KEY);
+  return conversationsData ? JSON.parse(conversationsData) : [];
+};
+
+export const getConversationById = (id: number): Conversation | undefined => {
+  const conversations = getAllConversations();
+  return conversations.find(c => c.id === id);
+};
+
+export const sendMessage = (conversationId: number, content: string, senderId: string): Message => {
+  const conversations = getAllConversations();
+  const conversationIndex = conversations.findIndex(c => c.id === conversationId);
+  
+  if (conversationIndex === -1) {
+    throw new Error("Conversation not found");
+  }
+
+  const newMessage: Message = {
+    id: Date.now(),
+    conversationId,
+    senderId,
+    content,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    read: false,
+  };
+
+  conversations[conversationIndex].messages.push(newMessage);
+  conversations[conversationIndex].lastMessage = content;
+  conversations[conversationIndex].time = newMessage.timestamp;
+  
+  localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(conversations));
+  return newMessage;
+};
+
+export const markConversationAsRead = (conversationId: number): void => {
+  const conversations = getAllConversations();
+  const conversationIndex = conversations.findIndex(c => c.id === conversationId);
+  
+  if (conversationIndex !== -1) {
+    conversations[conversationIndex].unread = false;
+    conversations[conversationIndex].messages.forEach(message => {
+      message.read = true;
+    });
+    localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(conversations));
+  }
+};
+
+export const createNewConversation = (user: string): Conversation => {
+  const conversations = getAllConversations();
+  const newConversation: Conversation = {
+    id: Date.now(),
+    user,
+    userInitials: user.split(' ').map(n => n[0]).join(''),
+    lastMessage: "",
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    unread: false,
+    messages: []
+  };
+  
+  conversations.unshift(newConversation);
+  localStorage.setItem(MESSAGES_STORAGE_KEY, JSON.stringify(conversations));
+  return newConversation;
 };

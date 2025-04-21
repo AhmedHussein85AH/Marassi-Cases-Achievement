@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import AppShell from "@/components/layouts/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { AddUserDialog } from "@/components/users/AddUserDialog";
 import { EditUserDialog } from "@/components/users/EditUserDialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 type User = {
   id: number;
@@ -32,9 +32,7 @@ type User = {
 const UsersPage = () => {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
-  // Mock user data
-  const users = [
+  const [users, setUsers] = useState([
     {
       id: 1,
       name: "Jane Smith",
@@ -80,11 +78,71 @@ const UsersPage = () => {
       status: "Inactive",
       initials: "LB"
     },
-  ];
+  ]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [filterRole, setFilterRole] = useState<string>("");
+  const [filterDepartment, setFilterDepartment] = useState<string>("");
+  const [filterStatus, setFilterStatus] = useState<string>("");
+
+  const handleAddUser = (newUser: Omit<User, "id" | "initials">) => {
+    const id = users.length + 1;
+    const initials = newUser.name.split(" ").map(n => n[0]).join("");
+    const userToAdd = { ...newUser, id, initials, status: "Active" };
+    setUsers(prev => [...prev, userToAdd]);
+    setFilteredUsers(prev => [...prev, userToAdd]);
+  };
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateUser = (updatedUser: User) => {
+    setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
+    applyFilters(searchQuery, filterRole, filterDepartment, filterStatus, 
+      prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u)
+    );
+  };
+
+  const applyFilters = (search: string, role: string, department: string, status: string, usersToFilter = users) => {
+    const lowercaseQuery = search.toLowerCase();
+    let filtered = usersToFilter;
+
+    if (search) {
+      filtered = filtered.filter(user => 
+        user.name.toLowerCase().includes(lowercaseQuery) ||
+        user.email.toLowerCase().includes(lowercaseQuery) ||
+        user.role.toLowerCase().includes(lowercaseQuery) ||
+        user.department.toLowerCase().includes(lowercaseQuery)
+      );
+    }
+
+    if (role) {
+      filtered = filtered.filter(user => user.role === role);
+    }
+
+    if (department) {
+      filtered = filtered.filter(user => user.department === department);
+    }
+
+    if (status) {
+      filtered = filtered.filter(user => user.status === status);
+    }
+
+    setFilteredUsers(filtered);
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    applyFilters(query, filterRole, filterDepartment, filterStatus);
+  };
+
+  const clearFilters = () => {
+    setFilterRole("");
+    setFilterDepartment("");
+    setFilterStatus("");
+    applyFilters(searchQuery, "", "", "");
   };
 
   const getStatusBadge = (status: string) => {
@@ -111,7 +169,7 @@ const UsersPage = () => {
             </p>
           </div>
           
-          <AddUserDialog />
+          <AddUserDialog onAddUser={handleAddUser} />
         </div>
         
         <Card>
@@ -125,12 +183,88 @@ const UsersPage = () => {
                   <Input 
                     placeholder="Search users..." 
                     className="pl-8 w-[250px]"
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
                   />
                 </div>
                 
-                <Button variant="outline" size="icon" className="h-10 w-10">
-                  <Filter className="h-4 w-4" />
-                </Button>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-10 w-10">
+                      <Filter className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[200px] p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">Filters</h4>
+                        {(filterRole || filterDepartment || filterStatus) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 px-2"
+                            onClick={clearFilters}
+                          >
+                            Clear all
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Role</label>
+                        <select
+                          className="w-full rounded-md border border-input px-3 py-2 text-sm"
+                          value={filterRole}
+                          onChange={(e) => {
+                            setFilterRole(e.target.value);
+                            applyFilters(searchQuery, e.target.value, filterDepartment, filterStatus);
+                          }}
+                        >
+                          <option value="">All Roles</option>
+                          <option value="Administrator">Administrator</option>
+                          <option value="Case Manager">Case Manager</option>
+                          <option value="Investigator">Investigator</option>
+                          <option value="Supervisor">Supervisor</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Department</label>
+                        <select
+                          className="w-full rounded-md border border-input px-3 py-2 text-sm"
+                          value={filterDepartment}
+                          onChange={(e) => {
+                            setFilterDepartment(e.target.value);
+                            applyFilters(searchQuery, filterRole, e.target.value, filterStatus);
+                          }}
+                        >
+                          <option value="">All Departments</option>
+                          <option value="Legal">Legal</option>
+                          <option value="Operations">Operations</option>
+                          <option value="Field Work">Field Work</option>
+                          <option value="Management">Management</option>
+                        </select>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Status</label>
+                        <select
+                          className="w-full rounded-md border border-input px-3 py-2 text-sm"
+                          value={filterStatus}
+                          onChange={(e) => {
+                            setFilterStatus(e.target.value);
+                            applyFilters(searchQuery, filterRole, filterDepartment, e.target.value);
+                          }}
+                        >
+                          <option value="">All Statuses</option>
+                          <option value="Active">Active</option>
+                          <option value="Away">Away</option>
+                          <option value="Inactive">Inactive</option>
+                        </select>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </CardHeader>
@@ -148,7 +282,7 @@ const UsersPage = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {users.map((user) => (
+                  {filteredUsers.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -199,6 +333,7 @@ const UsersPage = () => {
           user={editingUser} 
           open={isEditDialogOpen} 
           onOpenChange={setIsEditDialogOpen} 
+          onUpdateUser={handleUpdateUser}
         />
       )}
     </AppShell>

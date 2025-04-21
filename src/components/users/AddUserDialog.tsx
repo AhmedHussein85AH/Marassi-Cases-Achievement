@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -42,7 +41,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AddUserDialog() {
+interface AddUserDialogProps {
+  onAddUser: (user: FormValues) => void;
+}
+
+export function AddUserDialog({ onAddUser }: AddUserDialogProps) {
   const [open, setOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
@@ -59,8 +62,7 @@ export function AddUserDialog() {
   });
 
   const onSubmit = (values: FormValues) => {
-    // Here you would typically send this data to your backend
-    console.log("New user data:", values);
+    onAddUser(values);
     
     toast({
       title: "User added successfully",

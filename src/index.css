@@ -90,8 +90,9 @@
   }
 
   body {
-    @apply bg-gray-50; /* Correct Tailwind class */
+    @apply bg-gray-100;
     @apply text-gray-800;
+    @apply bg-gray-100;
   }
 }
 
@@ -118,5 +119,10 @@
   
   .case-status-resolved {
     @apply text-case-resolved bg-case-resolved/10 border border-case-resolved/30 px-2 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  /* Example custom styles */
+  .custom-class {
+    @apply bg-gray-100 text-gray-800;
   }
 }

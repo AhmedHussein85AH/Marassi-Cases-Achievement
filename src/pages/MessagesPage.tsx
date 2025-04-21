@@ -1,99 +1,102 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "@/components/layouts/AppShell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Send, Plus, Inbox, Archive } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { getAllConversations, sendMessage, markConversationAsRead, createNewConversation } from "@/services/dataService";
+import type { Conversation } from "@/services/dataService";
 
 const MessagesPage = () => {
   const { toast } = useToast();
-  // Mock message data
-  const conversations = [
-    {
-      id: 1,
-      user: "Jane Smith",
-      lastMessage: "Can you update me on case #45671?",
-      time: "10:23 AM",
-      unread: true,
-      userInitials: "JS"
-    },
-    {
-      id: 2,
-      user: "Robert Johnson",
-      lastMessage: "Documents received for case #45892",
-      time: "Yesterday",
-      unread: false,
-      userInitials: "RJ"
-    },
-    {
-      id: 3,
-      user: "Sarah Williams",
-      lastMessage: "Meeting scheduled for tomorrow",
-      time: "Yesterday",
-      unread: false,
-      userInitials: "SW"
-    },
-    {
-      id: 4,
-      user: "Michael Davis",
-      lastMessage: "Please review the updated case notes",
-      time: "Monday",
-      unread: true,
-      userInitials: "MD"
-    },
-    {
-      id: 5,
-      user: "Lisa Brown",
-      lastMessage: "New evidence submitted for review",
-      time: "Last week",
-      unread: false,
-      userInitials: "LB"
-    },
-  ];
-
-  // State to manage the active conversation
-  const [activeConversation, setActiveConversation] = useState(conversations[0]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [newMessage, setNewMessage] = useState("");
   const [showingArchived, setShowingArchived] = useState(false);
-  
-  // Function to handle conversation selection
-  const handleConversationSelect = (conversation) => {
-    // Mark as read when clicked
-    const updatedConversation = { ...conversation, unread: false };
-    setActiveConversation(updatedConversation);
+  const [showNewMessageDialog, setShowNewMessageDialog] = useState(false);
+  const [newRecipient, setNewRecipient] = useState("");
+
+  // Load conversations on mount
+  useEffect(() => {
+    loadConversations();
     
-    // Show toast notification
-    toast({
-      title: "Conversation opened",
-      description: `Opened conversation with ${conversation.user}`,
-    });
+    // Listen for storage changes for real-time updates
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "case-guardian-messages") {
+        loadConversations();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Update active conversation when conversations change
+  useEffect(() => {
+    if (activeConversation && conversations.length > 0) {
+      const updatedConversation = conversations.find(c => c.id === activeConversation.id);
+      if (updatedConversation) {
+        setActiveConversation(updatedConversation);
+      }
+    } else if (conversations.length > 0 && !activeConversation) {
+      setActiveConversation(conversations[0]);
+    }
+  }, [conversations]);
+
+  const loadConversations = () => {
+    const allConversations = getAllConversations();
+    setConversations(allConversations);
   };
 
-  // Function to handle sending a new message
-  const handleSendMessage = (e) => {
+  const handleConversationSelect = (conversation: Conversation) => {
+    setActiveConversation(conversation);
+    markConversationAsRead(conversation.id);
+    loadConversations(); // Reload to update unread status
+  };
+
+  const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
-    
-    toast({
-      title: "Message sent",
-      description: "Your message has been sent successfully",
-    });
-    
-    setNewMessage("");
+    if (!newMessage.trim() || !activeConversation) return;
+
+    try {
+      sendMessage(activeConversation.id, newMessage, "ME");
+      loadConversations();
+      setNewMessage("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive",
+      });
+    }
   };
 
-  // Function to handle creating a new message
   const handleNewMessage = () => {
-    toast({
-      title: "New message",
-      description: "Starting a new conversation",
-    });
+    setShowNewMessageDialog(true);
+  };
+
+  const handleStartNewConversation = () => {
+    if (!newRecipient.trim()) return;
+
+    try {
+      const newConversation = createNewConversation(newRecipient);
+      loadConversations();
+      setActiveConversation(newConversation);
+      setShowNewMessageDialog(false);
+      setNewRecipient("");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create conversation",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -107,13 +110,36 @@ const MessagesPage = () => {
             </p>
           </div>
           
-          <Button 
-            className="self-start flex items-center gap-2"
-            onClick={handleNewMessage}  
-          >
-            <Plus className="h-4 w-4" />
-            New Message
-          </Button>
+          <Dialog open={showNewMessageDialog} onOpenChange={setShowNewMessageDialog}>
+            <DialogTrigger asChild>
+              <Button 
+                className="self-start flex items-center gap-2"
+                onClick={handleNewMessage}
+              >
+                <Plus className="h-4 w-4" />
+                New Message
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>New Conversation</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <Input
+                  placeholder="Recipient name..."
+                  value={newRecipient}
+                  onChange={(e) => setNewRecipient(e.target.value)}
+                />
+                <Button 
+                  className="w-full" 
+                  onClick={handleStartNewConversation}
+                  disabled={!newRecipient.trim()}
+                >
+                  Start Conversation
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-[350px_1fr] gap-6">
@@ -148,7 +174,7 @@ const MessagesPage = () => {
                         key={conversation.id} 
                         className={`p-4 border-b hover:bg-muted/50 cursor-pointer ${
                           conversation.unread ? 'bg-muted/30' : ''
-                        } ${activeConversation.id === conversation.id ? 'bg-muted' : ''}`}
+                        } ${activeConversation?.id === conversation.id ? 'bg-muted' : ''}`}
                         onClick={() => handleConversationSelect(conversation)}
                       >
                         <div className="flex items-start gap-3">
@@ -191,56 +217,77 @@ const MessagesPage = () => {
           
           {/* Message detail */}
           <Card className="h-[calc(100vh-12rem)]">
-            <CardHeader className="border-b p-4">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback>{activeConversation.userInitials}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <CardTitle className="text-lg">{activeConversation.user}</CardTitle>
-                  <CardDescription>Last active 5 minutes ago</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0 flex flex-col h-[calc(100vh-22rem)]">
-              <ScrollArea className="flex-1 p-4">
-                <div className="space-y-4">
-                  <div className="flex gap-3">
+            {activeConversation ? (
+              <>
+                <CardHeader className="border-b p-4">
+                  <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarFallback>{activeConversation.userInitials}</AvatarFallback>
                     </Avatar>
-                    <div className="bg-muted p-3 rounded-lg max-w-[80%]">
-                      <p className="text-sm">{activeConversation.lastMessage}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{activeConversation.time}</p>
+                    <div>
+                      <CardTitle className="text-lg">{activeConversation.user}</CardTitle>
+                      <CardDescription>Last active {activeConversation.time}</CardDescription>
                     </div>
                   </div>
+                </CardHeader>
+                <CardContent className="p-0 flex flex-col h-[calc(100vh-22rem)]">
+                  <ScrollArea className="flex-1 p-4">
+                    <div className="space-y-4">
+                      {activeConversation.messages.map((message) => (
+                        <div key={message.id} className={`flex gap-3 ${message.senderId === "ME" ? "justify-end" : ""}`}>
+                          {message.senderId !== "ME" && (
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback>{activeConversation.userInitials}</AvatarFallback>
+                            </Avatar>
+                          )}
+                          <div className={`p-3 rounded-lg max-w-[80%] ${
+                            message.senderId === "ME" 
+                              ? "bg-primary text-primary-foreground" 
+                              : "bg-muted"
+                          }`}>
+                            <p className="text-sm">{message.content}</p>
+                            <p className={`text-xs mt-1 ${
+                              message.senderId === "ME" 
+                                ? "text-primary-foreground/80" 
+                                : "text-muted-foreground"
+                            }`}>
+                              {message.timestamp}
+                            </p>
+                          </div>
+                          {message.senderId === "ME" && (
+                            <Avatar className="h-10 w-10">
+                              <AvatarFallback>ME</AvatarFallback>
+                            </Avatar>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
                   
-                  <div className="flex gap-3 justify-end">
-                    <div className="bg-primary text-primary-foreground p-3 rounded-lg max-w-[80%]">
-                      <p className="text-sm">Hello {activeConversation.user.split(' ')[0]}, I'm working on the report now. I'll send it over in the next hour.</p>
-                      <p className="text-xs text-primary-foreground/80 mt-1">Just now</p>
-                    </div>
-                    <Avatar className="h-10 w-10">
-                      <AvatarFallback>ME</AvatarFallback>
-                    </Avatar>
+                  <div className="p-4 border-t mt-auto">
+                    <form onSubmit={handleSendMessage} className="flex gap-2">
+                      <Input 
+                        placeholder="Type your message..." 
+                        className="flex-1"
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                      />
+                      <Button type="submit" size="icon">
+                        <Send className="h-4 w-4" />
+                      </Button>
+                    </form>
                   </div>
-                </div>
-              </ScrollArea>
-              
-              <div className="p-4 border-t mt-auto">
-                <form onSubmit={handleSendMessage} className="flex gap-2">
-                  <Input 
-                    placeholder="Type your message..." 
-                    className="flex-1"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                  />
-                  <Button type="submit" size="icon">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
+                </CardContent>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                <MessageSquare className="h-12 w-12 text-muted-foreground mb-4" />
+                <p className="font-medium">No conversation selected</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Select a conversation or start a new one
+                </p>
               </div>
-            </CardContent>
+            )}
           </Card>
         </div>
       </div>

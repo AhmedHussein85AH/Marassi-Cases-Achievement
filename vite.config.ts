@@ -4,16 +4,21 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  base: '/Marassi-Cases-Achievement/',
   resolve: {
     alias: {
-      '@': '/src',
+      '@': path.resolve(__dirname, './src'),
     },
   },
-  base: '/Marassi-Cases-Achievement/', // Ensure this matches your GitHub Pages repository name
   build: {
-    outDir: 'dist', // Ensure the output directory is set to "dist"
+    outDir: 'dist',
     rollupOptions: {
-      external: ['@radix-ui/react-tooltip'], // Add @radix-ui/react-tooltip here
+      output: {
+        manualChunks: undefined,
+      },
     },
+  },
+  server: {
+    historyApiFallback: true,
   },
 });
