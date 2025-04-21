@@ -18,6 +18,9 @@ export default defineConfig({
       input: {
         main: path.resolve(__dirname, 'index.html')
       }
-    }
+    },
+    sourcemap: true,
+    minify: 'esbuild',
+    copyPublicDir: true
   }
 });
