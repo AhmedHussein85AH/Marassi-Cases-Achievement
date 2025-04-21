@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   base: '/Marassi-Cases-Achievement/',
@@ -15,12 +14,7 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html')
-      }
-    },
-    sourcemap: true,
-    minify: 'esbuild',
-    copyPublicDir: true
+      input: path.resolve(__dirname, 'index.html')
+    }
   }
 });
