@@ -5,14 +5,9 @@ import path from 'path'
 export default defineConfig({
   plugins: [react()],
   base: '/Marassi-Cases-Achievement/',
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
-    }
-  },
   build: {
     outDir: 'dist',
-    assetsDir: '',
+    assetsDir: 'assets',
     rollupOptions: {
       input: path.resolve(__dirname, 'index.html')
     }
